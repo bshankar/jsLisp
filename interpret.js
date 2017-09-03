@@ -20,6 +20,12 @@ const defaultEnv = {
   '=': (args) => args[0] === args[1]
 }
 
+// load the functions in math object into defaultEnv
+const mathFuns = Object.getOwnPropertyNames(Math)
+for (let i in mathFuns) {
+  defaultEnv[mathFuns[i]] = Math[mathFuns[i]]
+}
+
 function evalLisp (s) {
   const parseTree = lispParser(s)[0]
   return evalTree(defaultEnv, parseTree)
@@ -39,8 +45,8 @@ function evalTree (env, parseTree) {
 
 // test a file
 const fs = require('fs')
-const util = require('util')
 const filename = process.argv[2]
+console.log(defaultEnv)
 fs.readFile(filename, 'utf-8', function (err, s) {
   if (err) throw err
   let result = evalLisp(s)

@@ -1,4 +1,3 @@
 (begin
   (define r 10)
-  (define pi 3.14)
-  (if (> pi r) (* 2 pi r) (* pi r r)))
+  (if (> PI r) (* 2 PI r) (* PI r r)))
