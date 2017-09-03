@@ -6,6 +6,12 @@ const defaultEnv = {
   'define': function (args) { defaultEnv[args[0]] = args[1] },
   'if': (args) => args[0] ? args[1] : args[2],
 
+  // list functions
+  'list': (args) => new Array(args),
+  'car': (args) => args[0][0],
+  'cdr': (args) => new Array(args[0][0].slice(1)),
+  'cons': (args) => new Array([args[0]].concat(args[1][0])),
+
   // arithmetic functions
   '+': (args) => args.reduce((sum, e) => sum + e),
   '-': (args) => args.reduce((diff, e) => diff - e),
@@ -46,9 +52,8 @@ function evalTree (env, parseTree) {
 // test a file
 const fs = require('fs')
 const filename = process.argv[2]
-console.log(defaultEnv)
 fs.readFile(filename, 'utf-8', function (err, s) {
   if (err) throw err
   let result = evalLisp(s)
-  console.log(result)
+  console.log(result[0])
 })
