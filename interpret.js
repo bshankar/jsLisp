@@ -5,6 +5,7 @@ const defaultEnv = {
   'begin': (args) => args[args.length - 1],
   'define': function (args) { defaultEnv[args[0]] = args[1] },
   'if': (args) => args[0] ? args[1] : args[2],
+  'print': (args) => console.log(args[0]),
 
   // list functions
   'list': (args) => new Array(args),
@@ -17,6 +18,7 @@ const defaultEnv = {
   '-': (args) => args.reduce((diff, e) => diff - e),
   '*': (args) => args.reduce((mult, e) => mult * e),
   '/': (args) => args.reduce((div, e) => div / e),
+  '%': (args) => args.reduce((div, e) => div % e),
 
   // comparision functions
   '>': (args) => args[0] > args[1],
@@ -25,6 +27,9 @@ const defaultEnv = {
   '<=': (args) => args[0] <= args[1],
   '=': (args) => args[0] === args[1]
 }
+
+// make set! same as define for now
+defaultEnv['set!'] = defaultEnv['define']
 
 // load the functions in math object into defaultEnv
 const mathFuns = Object.getOwnPropertyNames(Math)
@@ -55,5 +60,5 @@ const filename = process.argv[2]
 fs.readFile(filename, 'utf-8', function (err, s) {
   if (err) throw err
   let result = evalLisp(s)
-  console.log(result[0])
+  console.log(result)
 })
