@@ -8,7 +8,7 @@ function standardEnv () {
   env['define'] = function (args) { env[args[0]] = args[1] }
   env['if'] = (args) => args[0] ? args[1] : args[2]
   env['lambda'] = function (args) {
-    const p = new Procedure(args.slice(0, args.length - 1), args[args.length - 1].slice(1))
+    const p = new Procedure(args.slice(0, args.length - 1), lispParser(args[args.length - 1].slice(1))[0])
     return p
   }
 
@@ -47,7 +47,6 @@ function Procedure (params, body, env) {
 }
 
 Procedure.prototype.call = function () {
-  this.body = lispParser(this.body)[0]
   return evalTree(this.body, this.env)
 }
 
@@ -75,7 +74,7 @@ function evalTree (parseTree, env) {
   if (parseTree[0] instanceof Array) {
     const p = new Procedure()
     p.params = parseTree[0].slice(1, parseTree[0].length - 1)
-    p.body = parseTree[0].slice(-1)[0].slice(1)
+    p.body = lispParser(parseTree[0].slice(-1)[0].slice(1))[0]
     p.env = new Env(p.params, parseTree.slice(1), env)
     return p.call()
   }
@@ -89,6 +88,7 @@ function evalTree (parseTree, env) {
   }
   if (env.find(parseTree[0]) instanceof Procedure) {
     const p = env.find(parseTree[0])
+    console.log(p)
     p.env = new Env(p.params, parseTree.slice(1), env)
     return p.call()
   }
@@ -108,4 +108,5 @@ fs.readFile(filename, 'utf-8', function (err, s) {
   if (err) throw err
   let result = evalLisp(s)
   console.log(result)
+  // console.log(util.inspect(result, false, null))
 })
