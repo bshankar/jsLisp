@@ -19,7 +19,7 @@ const stringParser = regexParser.bind(null, '"(?:\\\\"|[^"])*"', function (s) { 
 const symbolParser = regexParser.bind(null, '[^\\s()]+', null)
 const quoteParser = regexParser.bind(null, "(?:quote|\\')", null)
 
-function literalExpressionParser (s) {
+function literalExpParser (s) {
   let result = quoteParser(s)
   if (!result) return null
   result = regexParser('\\(', null, result[1])
@@ -37,8 +37,17 @@ function literalExpressionParser (s) {
   return ["'(" + result[1].slice(0, i), result[1].slice(i)]
 }
 
+function lambdaExpParser (s) {
+  let result = regexParser('lambda', null, s)
+  if (!result) return null
+  let argsResult = regexParser('\\([^)]+\\)', function (s) { return s.slice(1, s.length - 1).split(' ') }, result[1])
+  if (!argsResult) return null
+  result = literalExpParser("'" + argsResult[1])
+  return [['lambda'].concat(argsResult[0]).concat([result[0]]), result[1]]
+}
+
 const valueParser = (s) => {
-  return numberParser(s) || stringParser(s) || literalExpressionParser(s) || symbolParser(s) || lispParser(s)
+  return numberParser(s) || stringParser(s) || lambdaExpParser(s) || literalExpParser(s) || symbolParser(s) || lispParser(s)
 }
 
 function lispParser (s) {
@@ -49,7 +58,11 @@ function lispParser (s) {
     let rest = result[1]
     result = valueParser(rest)
     if (!result) return [parseTree, regexParser('\\)', null, rest)[1]]
-    parseTree.push(result[0])
+    if (result[0] instanceof Array && result[0][0] instanceof Array && result[0].length === 1) {
+      parseTree.push(result[0][0])
+    } else {
+      parseTree.push(result[0])
+    }
     let decidingResult = regexParser('\\)', null, result[1])
     if (decidingResult) return [parseTree, decidingResult[1]]
   }
