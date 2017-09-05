@@ -5,12 +5,6 @@ function standardEnv () {
 
   // keywords
   env['begin'] = (args) => args[args.length - 1]
-  env['define'] = function (args) { env[args[0]] = args[1] }
-  env['if'] = (args) => args[0] ? args[1] : args[2]
-  env['lambda'] = function (args) {
-    const p = new Procedure(args.slice(0, args.length - 1), lispParser(args[args.length - 1].slice(1))[0])
-    return p
-  }
 
   // list functions
   env['list'] = (args) => new Array(args)
@@ -33,10 +27,10 @@ function standardEnv () {
   env['='] = (args) => args[0] === args[1]
 
   // load math functions
-  // const mathFuns = Object.getOwnPropertyNames(Math)
-  // for (let i in mathFuns) {
-    // env[mathFuns[i]] = Math[mathFuns[i]]
-  // }
+  const mathFuns = Object.getOwnPropertyNames(Math)
+  for (let i in mathFuns) {
+    env[mathFuns[i]] = Math[mathFuns[i]]
+  }
   return env
 }
 
@@ -67,46 +61,43 @@ Env.prototype.find = function (v) {
   return null
 }
 
-function evalTree (parseTree, env) {
+function evalTree (x, env) {
   if (!env) env = standardEnv()
-  if (!parseTree) return null
+  if (x === null) return null
 
-  if (parseTree[0] instanceof Array) {
-    const p = new Procedure()
-    p.params = parseTree[0].slice(1, parseTree[0].length - 1)
-    p.body = lispParser(parseTree[0].slice(-1)[0].slice(1))[0]
-    p.env = new Env(p.params, parseTree.slice(1), env)
-    return p.call()
-  }
-
-  for (let i = 1; i < parseTree.length; ++i) {
-    if (env.find(parseTree[i])) {
-      parseTree[i] = env.find(parseTree[i])
-    } else if (parseTree[i] instanceof Array) {
-      parseTree[i] = evalTree(parseTree[i], env)
+  if (typeof x === 'string') return env.find(x)
+  else if (!(x instanceof Array)) return x
+  else if (x[0] === 'define') env[x[1]] = evalTree(x[2], env)
+  else if (x[0] === 'if') {
+    if (evalTree(x[1], env)) return evalTree(x[2], env)
+    return evalTree(x[3], env)
+  } else if (x[0] === 'lambda') {
+    return new Procedure(x.slice(1, x.length - 1), lispParser(x[x.length - 1].slice(1))[0])
+  } else {
+    const proc = evalTree(x[0], env)
+    const args = []
+    for (let i = 1; i < x.length; ++i) {
+      args.push(evalTree(x[i], env))
     }
+
+    if (proc instanceof Procedure) {
+      proc.env = new Env(proc.params, args, env)
+      return proc.call()
+    }
+    return proc(args)
   }
-  if (env.find(parseTree[0]) instanceof Procedure) {
-    const p = env.find(parseTree[0])
-    console.log(p)
-    p.env = new Env(p.params, parseTree.slice(1), env)
-    return p.call()
-  }
-  return env.find(parseTree[0])(parseTree.slice(1))
 }
 
 function evalLisp (s) {
-  const parseTree = lispParser(s)[0]
-  return evalTree(parseTree)
+  const x = lispParser(s)[0]
+  return evalTree(x)
 }
 
 // test a file
 const fs = require('fs')
-const util = require('util')
 const filename = process.argv[2]
 fs.readFile(filename, 'utf-8', function (err, s) {
   if (err) throw err
   let result = evalLisp(s)
   console.log(result)
-  // console.log(util.inspect(result, false, null))
 })
