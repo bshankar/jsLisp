@@ -41,7 +41,10 @@ function Procedure (params, body, env) {
 }
 
 Procedure.prototype.call = function () {
-  return evalTree(this.body, this.env)
+  for (let i = 0; i < this.body.length - 1; ++i) {
+    evalTree(this.body[i], this.env)
+  }
+  return evalTree(this.body[this.body.length - 1], this.env)
 }
 
 function Env (params, args, outer) {
@@ -72,16 +75,13 @@ function evalTree (x, env) {
     if (evalTree(x[1], env)) return evalTree(x[2], env)
     return evalTree(x[3], env)
   } else if (x[0] === 'lambda') {
-    const p = new Procedure(x.slice(1, x.length - 1), lispParser(x[x.length - 1].slice(1))[0])
-    console.log(x[x.length - 1].slice(1))
-    return p
+    return new Procedure(x.slice(1, x.length - 1)[0], x.slice(2))
   } else {
     const proc = evalTree(x[0], env)
     const args = []
     for (let i = 1; i < x.length; ++i) {
       args.push(evalTree(x[i], env))
     }
-
     if (proc instanceof Procedure) {
       proc.env = new Env(proc.params, args, env)
       return proc.call()

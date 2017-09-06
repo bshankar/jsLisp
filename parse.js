@@ -42,9 +42,9 @@ function lambdaExpParser (s) {
   if (!result) return null
   let argsResult = regexParser('\\([^)]+\\)', function (s) { return s.slice(1, s.length - 1).split(' ') }, result[1])
   if (!argsResult) return null
-  result = literalExpParser("'(" + argsResult[1] + ')')
+  result = literalExpParser("'(" + argsResult[1])
   const body = lispParser(result[0].slice(1))[0]
-  return [['lambda'].concat([argsResult[0]]).concat(body), result[1]]
+  return [['lambda'].concat([argsResult[0]]).concat(body), ')' + result[1]]
 }
 
 const valueParser = (s) => {
