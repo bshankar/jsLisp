@@ -38,6 +38,7 @@ function literalExpParser (s) {
 }
 
 function lambdaExpParser (s) {
+  // (lambda (param1 param2 ...) (body1) (body2) ...)
   let result = regexParser('lambda', null, s)
   if (!result) return null
   let argsResult = regexParser('\\([^)]+\\)', function (s) { return s.slice(1, s.length - 1).split(' ') }, result[1])
@@ -47,11 +48,24 @@ function lambdaExpParser (s) {
   return [['lambda'].concat([argsResult[0]]).concat(body), ')' + result[1]]
 }
 
-const valueParser = (s) => {
-  return numberParser(s) || stringParser(s) || lambdaExpParser(s) || literalExpParser(s) || symbolParser(s) || lispParser(s)
+function macroParser (s) {
+  // (defmacro name (params) (body with params))
+  let result = regexParser('defmacro', null, s)
+  if (!result) return null
+  let macroName = symbolParser(result[1])
+  let argsResult = regexParser('\\([^)]+\\)', function (s) { return s.slice(1, s.length - 1).split(' ') }, result[1])
+  if (!argsResult) return null
+  result = literalExpParser("'(" + argsResult[1])
+  const body = lispParser(result[0].slice(1))[0]
+  return [['defmacro', macroName].concat([argsResult[0]]).concat(body), ')' + result[1]]
 }
 
-function lispParser (s) {
+const valueParser = (s) => {
+  return numberParser(s) || stringParser(s) || lambdaExpParser(s) ||
+    macroParser(s) || literalExpParser(s) || symbolParser(s) || lispSegmentParser(s)
+}
+
+function lispSegmentParser (s) {
   const parseTree = []
   let result = regexParser('\\(', null, s)
   if (!result) return null
@@ -67,6 +81,16 @@ function lispParser (s) {
     let decidingResult = regexParser('\\)', null, result[1])
     if (decidingResult) return [parseTree, decidingResult[1]]
   }
+}
+
+function lispParser (s) {
+  const res = []
+  while (s.match('[^\\s]+') !== null) {
+    const result = lispSegmentParser(s)
+    res.push(result[0])
+    s = result[1]
+  }
+  return res
 }
 
 module.exports = {lispParser: lispParser}
