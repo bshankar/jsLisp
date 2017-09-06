@@ -72,7 +72,9 @@ function evalTree (x, env) {
     if (evalTree(x[1], env)) return evalTree(x[2], env)
     return evalTree(x[3], env)
   } else if (x[0] === 'lambda') {
-    return new Procedure(x.slice(1, x.length - 1), lispParser(x[x.length - 1].slice(1))[0])
+    const p = new Procedure(x.slice(1, x.length - 1), lispParser(x[x.length - 1].slice(1))[0])
+    console.log(x[x.length - 1].slice(1))
+    return p
   } else {
     const proc = evalTree(x[0], env)
     const args = []
@@ -98,6 +100,8 @@ const fs = require('fs')
 const filename = process.argv[2]
 fs.readFile(filename, 'utf-8', function (err, s) {
   if (err) throw err
-  let result = evalLisp(s)
-  console.log(result)
+
+  const util = require('util')
+  let result = lispParser(s)
+  console.log(util.inspect(result, false, null))
 })
