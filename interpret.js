@@ -7,10 +7,10 @@ function standardEnv () {
   env['begin'] = (args) => args[args.length - 1]
 
   // list functions
-  env['list'] = (args) => new Array(args)
+  env['list'] = (args) => args
   env['car'] = (args) => args[0][0]
-  env['cdr'] = (args) => new Array(args[0][0].slice(1))
-  env['cons'] = (args) => new Array([args[0]].concat(args[1][0]))
+  env['cdr'] = (args) => args[0].slice(1)
+  env['cons'] = (args) => [args[0]].concat(args[1])
 
   // arithmetic functions
   env['+'] = (args) => args.reduce((sum, e) => sum + e)
@@ -102,6 +102,6 @@ fs.readFile(filename, 'utf-8', function (err, s) {
   if (err) throw err
 
   const util = require('util')
-  let result = lispParser(s)
+  let result = evalLisp(s)
   console.log(util.inspect(result, false, null))
 })
