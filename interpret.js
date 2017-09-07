@@ -4,27 +4,28 @@ function standardEnv () {
   const env = new Env()
 
   // keywords
-  env['begin'] = (args) => args[args.length - 1]
+  env['begin'] = args => args[args.length - 1]
+  env['display'] = args => console.log(args[0])
 
   // list functions
-  env['list'] = (args) => args
-  env['car'] = (args) => args[0][0]
-  env['cdr'] = (args) => args[0].slice(1)
-  env['cons'] = (args) => [args[0]].concat(args[1])
+  env['list'] = args => args
+  env['car'] = args => args[0][0]
+  env['cdr'] = args => args[0].slice(1)
+  env['cons'] = args => [args[0]].concat(args[1])
 
   // arithmetic functions
-  env['+'] = (args) => args.reduce((sum, e) => sum + e)
-  env['-'] = (args) => args.reduce((diff, e) => diff - e)
-  env['*'] = (args) => args.reduce((mult, e) => mult * e)
-  env['/'] = (args) => args.reduce((div, e) => div / e)
-  env['%'] = (args) => args.reduce((div, e) => div % e)
+  env['+'] = args => args.reduce((sum, e) => sum + e)
+  env['-'] = args => args.reduce((diff, e) => diff - e)
+  env['*'] = args => args.reduce((mult, e) => mult * e)
+  env['/'] = args => args.reduce((div, e) => div / e)
+  env['%'] = args => args.reduce((div, e) => div % e)
 
   // comparision functions
-  env['>'] = (args) => args[0] > args[1]
-  env['<'] = (args) => args[0] < args[1]
-  env['>='] = (args) => args[0] >= args[1]
-  env['<='] = (args) => args[0] <= args[1]
-  env['='] = (args) => args[0] === args[1]
+  env['>'] = args => args[0] > args[1]
+  env['<'] = args => args[0] < args[1]
+  env['>='] = args => args[0] >= args[1]
+  env['<='] = args => args[0] <= args[1]
+  env['='] = args => args[0] === args[1]
 
   // load math functions
   const mathFuns = Object.getOwnPropertyNames(Math)
@@ -59,23 +60,23 @@ function Env (params, args, outer) {
 }
 
 Env.prototype.find = function (v) {
-  if (v in this) return this[v]
-  if (this.outer) return this.outer.find(v)
-  return null
+  if (v in this) return this
+  return this.outer.find(v)
 }
 
 function evalTree (x, env) {
   if (!env) env = standardEnv()
   if (x === null) return null
 
-  if (typeof x === 'string') return env.find(x)
+  if (typeof x === 'string') return env.find(x)[x]
   else if (!(x instanceof Array)) return x
   else if (x[0] === 'define') env[x[1]] = evalTree(x[2], env)
+  else if (x[0] === 'set!') env.find(x[1])[x[1]] = evalTree(x[2], env)
   else if (x[0] === 'if') {
     if (evalTree(x[1], env)) return evalTree(x[2], env)
     return evalTree(x[3], env)
   } else if (x[0] === 'lambda') {
-    return new Procedure(x.slice(1, x.length - 1)[0], x.slice(2))
+    return new Procedure(x[1], x.slice(2))
   } else {
     const proc = evalTree(x[0], env)
     const args = []

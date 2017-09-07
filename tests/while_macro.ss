@@ -7,5 +7,6 @@
 (define n 10)
 
 (while (> n 0)
-       (display n)
-       (set! n (- n 1)))
+       (set! n (- n 1))
+       (display n))
+
