@@ -12,6 +12,7 @@ function standardEnv () {
   env['car'] = args => args[0][0]
   env['cdr'] = args => args[0].slice(1)
   env['cons'] = args => [args[0]].concat(args[1])
+  env['reverse'] = args => args[0].reverse()
 
   // arithmetic functions
   env['+'] = args => args.reduce((sum, e) => sum + e)
@@ -42,10 +43,12 @@ function Procedure (params, body, env) {
 }
 
 Procedure.prototype.call = function () {
-  for (let i = 0; i < this.body.length - 1; ++i) {
-    evalTree(this.body[i], this.env)
-  }
-  return evalTree(this.body[this.body.length - 1], this.env)
+  if (this.body[0] instanceof Array) {
+    for (let i = 0; i < this.body.length - 1; ++i) {
+      evalTree(this.body[i], this.env)
+    }
+    return evalTree(this.body[this.body.length - 1], this.env)
+  } else return evalTree(this.body, this.env)
 }
 
 function Env (params, args, outer) {
@@ -87,7 +90,7 @@ function evalTree (x, env) {
       proc.env = new Env(proc.params, args, env)
       return proc.call()
     }
-    return proc(args)
+    if (proc !== undefined) return proc(args)
   }
 }
 

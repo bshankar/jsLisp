@@ -48,13 +48,12 @@ function lambdaExpParser (s) {
   return [['lambda'].concat([argsResult[0]]).concat(body), ')' + result[1]]
 }
 
-function Macro (name, params, body) {
-  this.name = name
+function Macro (params, body) {
   this.params = params
   this.body = body
 }
 
-const macros = []
+const macros = {}
 
 function macroParser (s) {
   // (defmacro name (params) (body with params))
@@ -66,8 +65,7 @@ function macroParser (s) {
   if (!argsResult) return null
   result = literalExpParser("'(" + argsResult[1])
   const body = lispParser(result[0].slice(1))[0]
-  const m = new Macro(macroName, argsResult[0], body)
-  macros.push(m)
+  macros[macroName] = new Macro(argsResult[0], body)
   return ['defmacro', ')' + result[1]]
 }
 
@@ -94,9 +92,33 @@ function lispSegmentParser (s) {
   }
 }
 
+function updateMacroBody (params, args, body) {
+  for (let i in body) {
+    if (body[i] instanceof Array) body[i] = updateMacroBody(params, args, body[i])
+    else if (params.indexOf(body[i]) > -1) {
+      const arg = args[params.indexOf(body[i])]
+      if (arg[0] instanceof Array) body = body.slice(0, i).concat(arg).concat(body.slice(i).slice(1))
+      else body[i] = args[params.indexOf(body[i])]
+    }
+  }
+  return body
+}
+
 function expandMacros (ast) {
-  for (let i = 0; i < macros.length; ++i) {
-    const m = macros[i]
+  for (let i = 0; i < ast.length; ++i) {
+    if (ast[i] instanceof Array) {
+      ast[i] = expandMacros(ast[i])
+    } else if (ast[i] in macros) {
+      const m = macros[ast[i]]
+      const args = []
+      for (let j = 0; j < m.params.length - 1; ++j) {
+        args.push(ast[i + j + 1])
+      }
+      args.push(ast.slice(m.params.length))
+      m.body = updateMacroBody(m.params, args, m.body)
+      ast[i] = macros[ast[i]].body
+      ast = ast.slice(0, i + 1)
+    }
   }
   return ast
 }
@@ -108,10 +130,11 @@ function lispParser (s) {
     res.push(result[0])
     s = result[1]
   }
+  res = expandMacros(res)
   // flatten and get rid of empty arrays
-  if (res.length === 1) res = res[0]
   res = res.filter(e => e.length)
-  return [expandMacros(res), s]
+  while (res.length === 1) res = res[0]
+  return [res, s]
 }
 
 module.exports = {lispParser: lispParser}
