@@ -71,13 +71,13 @@ function evalTree (x, env) {
   if (!env) env = standardEnv()
   if (x === null) return null
 
-  if (typeof x === 'string') return env.find(x)[x]
+  if (typeof x === 'string' && x[0] !== "'") return env.find(x)[x]
   else if (!(x instanceof Array)) return x
   else if (x[0] === 'define') env[x[1]] = evalTree(x[2], env)
   else if (x[0] === 'set!') env.find(x[1])[x[1]] = evalTree(x[2], env)
   else if (x[0] === 'if') {
     if (evalTree(x[1], env)) return evalTree(x[2], env)
-    return evalTree(x[3], env)
+    if (x.length > 3) return evalTree(x[3], env)
   } else if (x[0] === 'lambda') {
     return new Procedure(x[1], x.slice(2))
   } else {
@@ -106,6 +106,7 @@ fs.readFile(filename, 'utf-8', function (err, s) {
   if (err) throw err
 
   const util = require('util')
+  console.log('AST: \n', util.inspect(lispParser(s)[0], false, null))
   let result = evalLisp(s)
-  console.log(util.inspect(result, false, null))
+  console.log('\nResult: \n', util.inspect(result, false, null))
 })

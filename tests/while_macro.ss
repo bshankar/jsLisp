@@ -1,8 +1,7 @@
 (defmacro while (condition body)
   (define loop (lambda ()
                  (if condition
-                     (begin body (loop))
-                     (+ 1 1))))
+                     (begin body (loop)))))
   (loop))
 
 (define n 10)
