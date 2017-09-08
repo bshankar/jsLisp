@@ -31,7 +31,7 @@ function standardEnv () {
   // load math functions
   const mathFuns = Object.getOwnPropertyNames(Math)
   for (let i in mathFuns) {
-    env[mathFuns[i]] = Math[mathFuns[i]]
+    env[mathFuns[i]] = args => Math[mathFuns[i]](...args)
   }
   return env
 }
