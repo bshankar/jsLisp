@@ -14,7 +14,7 @@ function afterRegexMatch (s, matched, evalFn) {
   }
 }
 
-const numberParser = regexParser.bind(null, '[-+]?\\d+\\.?\\d*[eE]?[-+]?\\d*', parseFloat)
+const numberParser = regexParser.bind(null, '[-+]?(\\d+\\.?\\d*([eE][-+]?\\d+)?|\\d*\\.?\\d+([eE][-+]?\\d+)?)', parseFloat)
 const stringParser = regexParser.bind(null, '"(?:\\\\"|[^"])*"', function (s) { return s.slice(1, s.length - 1) })
 const symbolParser = regexParser.bind(null, '[^\\s()]+', null)
 const quoteParser = regexParser.bind(null, "(?:quote|\\')", null)
