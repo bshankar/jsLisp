@@ -14,13 +14,16 @@ const tokenParser = s => reParser(/^\s*([^\s()]+)\s*/, s, v => {
     (v === 'false' ? false : v === 'null' ? null : find(v) || v)
 })
 
-function sexpParser (s, env, ast = []) {
+function sexpParser (s, env, pause = false, ast = []) {
   let res = open(s)
   while (res) {
-    res = tokenParser(res) || sexpParser(res)
+    res = tokenParser(res) || sexpParser(res, env, pause)
     if (res) ast.push(res[0])
     const hasEnded = close(res)
-    if (hasEnded) return [ast[0](ast.slice(1)), hasEnded[1]]
+    if (hasEnded) {
+      return pause ? [ast, hasEnded[1]]
+        : [ast[0](ast.slice(1)), hasEnded[1]]
+    }
   }
   return null
 }
