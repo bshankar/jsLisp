@@ -12,9 +12,11 @@ const env = {
   '<=': args => args.every((e, i) => i ? args[i - 1] <= e : true),
   '>=': args => args.every((e, i) => i ? args[i - 1] >= e : true),
 
+  // quote
+  // list operations
   // special forms
   'begin': args => args[args.length - 1],
-  'define': function (args) { this[args[0]] = args[1] }
+  'define': function (args) { this[args[0]] = args[1] },
 }
 
 env.define = env.define.bind(env)
