@@ -16,11 +16,11 @@ const env = {
   // list operations
   // special forms
   'begin': args => args[args.length - 1],
-  'define': function (args) { this[args[0]] = args[1] },
   'if': args => args[0] ? args[1] : args[2]
 }
 
-env.define = env.define.bind(env)
-const find = v => v instanceof Array ? env[v[0]] : env[v]
+const unwrap = v => v instanceof Array ? v[0] : v
+const set = (k, v, env) => { env[unwrap(k)] = unwrap(v) }
+const get = (k, env) => env[unwrap(k)]
 
-module.exports = { env, find }
+module.exports = { env, set, get }
