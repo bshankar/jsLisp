@@ -1,1 +1,1 @@
-((lambda (x y) (* x y)) 5 2)
+((lambda (x y) (* x (+ y z))) 5 2 7)
